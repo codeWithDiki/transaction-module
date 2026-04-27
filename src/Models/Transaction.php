@@ -31,4 +31,10 @@ class Transaction extends Model
         $this->save();
     }
 
+    public function markAsFailed()
+    {
+        $this->payment_status = \CodeWithDiki\TransactionModule\Enums\PaymentStatus::FAILED;
+        $this->save();
+    }
+
 }
