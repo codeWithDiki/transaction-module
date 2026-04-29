@@ -13,6 +13,7 @@ class Transaction extends Model
 
     protected $casts = [
         'payment_status' => \CodeWithDiki\TransactionModule\Enums\PaymentStatus::class,
+        'status' => \CodeWithDiki\TransactionModule\Enums\TransactionStatus::class,
     ];
 
     public function items()
@@ -28,12 +29,15 @@ class Transaction extends Model
     public function markAsPaid()
     {
         $this->payment_status = \CodeWithDiki\TransactionModule\Enums\PaymentStatus::PAID;
+        $this->paid_at = now();
+        $this->status = config('transaction-module.status_after_payment', \CodeWithDiki\TransactionModule\Enums\TransactionStatus::PROCESSING);
         $this->save();
     }
 
     public function markAsFailed()
     {
         $this->payment_status = \CodeWithDiki\TransactionModule\Enums\PaymentStatus::FAILED;
+        $this->failed_at = now();
         $this->save();
     }
 

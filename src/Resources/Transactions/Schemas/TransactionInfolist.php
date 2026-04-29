@@ -22,6 +22,10 @@ class TransactionInfolist
                     ->money(currency: 'IDR', locale: 'id-ID'),
                 TextEntry::make('payment_status')
                     ->badge(),
+                TextEntry::make('status')
+                    ->badge(),
+                TextEntry::make('notes')
+                    ->placeholder('-'),
                 TextEntry::make('paid_at')
                     ->dateTime()
                     ->placeholder('-'),

@@ -26,6 +26,8 @@ return new class extends Migration
             $table->double("tax_amount")->default(0);
             $table->double("grand_total");
             $table->string("payment_status");
+            $table->string("status")->default(\CodeWithDiki\TransactionModule\Enums::ONHOLD);
+            $table->longText("notes")->nullable();
             $table->dateTime("paid_at")->nullable();
             $table->dateTime("failed_at")->nullable();
 

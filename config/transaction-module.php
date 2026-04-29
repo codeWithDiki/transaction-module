@@ -7,4 +7,5 @@ return [
     "transaction_item_class" => \CodeWithDiki\TransactionModule\Models\TransactionItem::class,
     "discount_class" => \CodeWithDiki\TransactionModule\Models\Discount::class,
     "tax" => env("TAX_PERCENTAGE", 0), // in percentage
+    "status_after_payment" => \CodeWithDiki\TransactionModule\Enums\TransactionStatus::PROCESSING,
 ];

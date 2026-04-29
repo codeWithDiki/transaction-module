@@ -30,6 +30,9 @@ class TransactionsTable
                 TextColumn::make('payment_status')
                     ->badge()
                     ->searchable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('paid_at')
                     ->dateTime()
                     ->sortable(),
