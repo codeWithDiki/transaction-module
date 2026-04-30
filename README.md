@@ -1,10 +1,5 @@
 # Transaction Module untuk Laravel
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithdiki/transaction-module.svg?style=flat-square)](https://packagist.org/packages/codewithdiki/transaction-module)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/codewithdiki/transaction-module/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/codewithdiki/transaction-module/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/codewithdiki/transaction-module/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/codewithdiki/transaction-module/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/codewithdiki/transaction-module.svg?style=flat-square)](https://packagist.org/packages/codewithdiki/transaction-module)
-
 **Transaction Module** adalah package Laravel yang menyediakan sistem manajemen transaksi yang lengkap dan siap pakai. Dengan satu package ini, kamu mendapatkan model, migrasi, DTO berbasis [Spatie Laravel Data](https://github.com/spatie/laravel-data), hingga UI admin berbasis [Filament](https://filamentphp.com) — semua sudah terintegrasi.
 
 Package ini cocok digunakan pada aplikasi e-commerce, kasir, atau sistem pemesanan yang membutuhkan pencatatan transaksi secara terstruktur.
@@ -58,6 +53,33 @@ Package ini cocok digunakan pada aplikasi e-commerce, kasir, atau sistem pemesan
 ---
 
 ## Instalasi
+Sebelum menginstal Transaction Module, kamu harus membuat akun terlebih dahulu di : [sini](https://dikiakbarasyidiq.dev/auth/register). Setelah membuat akun buka halaman (Dashboard → Account) untuk melihat license key kamu.
+
+Copy license key kamu lalu jalankan command ini :
+
+```bash
+composer config bearer.dikiakbarasyidiq.dev <license_key>
+```
+
+Setelah menjalankan command diatas, tambahkan repository berikut di file composer.json. (Jika Belum Ada)
+```
+{
+"repositories": [
+        {
+            "type" : "composer",
+            "url" : "https://dikiakbarasyidiq.dev"
+        }
+    ]
+}
+```
+
+Setelah menambahkan repository, update composer terlebih dahulu:
+
+```bash
+composer update
+```
+
+Lalu kamu akan bisa melakukan installasi via composer di project kamu dengan command :
 
 ```bash
 composer require codewithdiki/transaction-module
