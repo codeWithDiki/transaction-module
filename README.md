@@ -1,69 +1,439 @@
-# :package_description
+# Transaction Module untuk Laravel
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/:vendor_slug/:package_slug/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/codewithdiki/transaction-module.svg?style=flat-square)](https://packagist.org/packages/codewithdiki/transaction-module)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/codewithdiki/transaction-module/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/codewithdiki/transaction-module/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/codewithdiki/transaction-module/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/codewithdiki/transaction-module/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/codewithdiki/transaction-module.svg?style=flat-square)](https://packagist.org/packages/codewithdiki/transaction-module)
+
+**Transaction Module** adalah package Laravel yang menyediakan sistem manajemen transaksi yang lengkap dan siap pakai. Dengan satu package ini, kamu mendapatkan model, migrasi, DTO berbasis [Spatie Laravel Data](https://github.com/spatie/laravel-data), hingga UI admin berbasis [Filament](https://filamentphp.com) — semua sudah terintegrasi.
+
+Package ini cocok digunakan pada aplikasi e-commerce, kasir, atau sistem pemesanan yang membutuhkan pencatatan transaksi secara terstruktur.
+
 ---
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
+## Daftar Isi
+
+- [Fitur Utama](#fitur-utama)
+- [Persyaratan](#persyaratan)
+- [Instalasi](#instalasi)
+- [Konfigurasi](#konfigurasi)
+- [Struktur Database](#struktur-database)
+- [Penggunaan](#penggunaan)
+  - [Membuat Transaksi](#membuat-transaksi)
+  - [Membuat Customer](#membuat-customer)
+  - [Walk-In Customer](#walk-in-customer)
+  - [Mengambil Data Transaksi](#mengambil-data-transaksi)
+  - [Menandai Status Pembayaran](#menandai-status-pembayaran)
+- [Enums](#enums)
+- [Data Transfer Objects (DTO)](#data-transfer-objects-dto)
+- [Meng-extend Model](#meng-extend-model)
+- [Filament Admin UI](#filament-admin-ui)
+- [Testing](#testing)
+- [Changelog](#changelog)
+- [Lisensi](#lisensi)
+
 ---
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
 
-## Support us
+## Fitur Utama
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
+- **Manajemen Transaksi** — buat, lacak, dan kelola transaksi beserta item-itemnya.
+- **Manajemen Customer** — simpan data pelanggan dengan dukungan walk-in customer.
+- **Manajemen Diskon** — kode diskon dengan tipe persentase atau nominal tetap.
+- **Polymorphic Transaction Items** — item transaksi bisa mereferensikan model apapun (produk, layanan, paket, dll.) tanpa mengubah skema database.
+- **Type-safe DTOs** — menggunakan Spatie Laravel Data untuk transfer data yang aman dan terstruktur.
+- **Status Otomatis** — status transaksi dan pembayaran dikelola via PHP Enum dengan casting otomatis.
+- **Filament Admin UI** — panel administrasi lengkap untuk mengelola semua data.
+- **Extensible** — semua model bisa di-override via konfigurasi.
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+---
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+## Persyaratan
 
-## Installation
+| Dependensi | Versi |
+|---|---|
+| PHP | ^8.4 |
+| Laravel | ^11.0 \|\| ^12.0 \|\| ^13.0 |
+| Spatie Laravel Data | ^4.22 |
 
-You can install the package via composer:
+---
+
+## Instalasi
 
 ```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
+composer require codewithdiki/transaction-module
+php artisan vendor:publish --tag="transaction-module-migrations"
+php artisan vendor:publish --tag="transaction-module-config"
 php artisan migrate
 ```
 
-You can publish the config file with:
+Jika aplikasimu membutuhkan walk-in customer (misalnya untuk transaksi kasir tanpa akun):
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan transaction-module:create-walk-in-customer
 ```
 
-This is the contents of the published config file:
+---
+
+## Konfigurasi
+
+Setelah publish, file konfigurasi tersedia di `config/transaction-module.php`:
 
 ```php
 return [
+    // Model yang digunakan — bisa diganti dengan model custom kamu
+    "customer_class"          => \CodeWithDiki\TransactionModule\Models\Customer::class,
+    "transaction_class"       => \CodeWithDiki\TransactionModule\Models\Transaction::class,
+    "transaction_item_class"  => \CodeWithDiki\TransactionModule\Models\TransactionItem::class,
+    "discount_class"          => \CodeWithDiki\TransactionModule\Models\Discount::class,
+
+    // Persentase pajak (baca dari .env)
+    "tax" => env("TAX_PERCENTAGE", 0),
+
+    // Status transaksi setelah pembayaran berhasil
+    "status_after_payment" => \CodeWithDiki\TransactionModule\Enums\TransactionStatus::PROCESSING,
 ];
 ```
 
-Optionally, you can publish the views using
+Tambahkan variabel berikut di file `.env` jika diperlukan:
 
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
+```env
+TAX_PERCENTAGE=11
 ```
 
-## Usage
+---
+
+## Struktur Database
+
+Package ini membuat 4 tabel saat migrasi dijalankan:
+
+### `customers`
+Menyimpan data pelanggan.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `name` | string | Nama pelanggan |
+| `email` | string, nullable | Email unik |
+| `phone_number` | string, nullable | Nomor telepon |
+| `address` | string, nullable | Alamat |
+
+### `transactions`
+Menyimpan header transaksi.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `customer_id` | foreign key | Relasi ke `customers` |
+| `trx_id` | string, unique | ID transaksi unik |
+| `total_amount` | double | Total sebelum pajak |
+| `tax_amount` | double | Nominal pajak |
+| `grand_total` | double | Total akhir |
+| `payment_status` | string | `PENDING`, `PAID`, atau `FAILED` |
+| `status` | string | Status pengiriman/proses |
+| `notes` | longText, nullable | Catatan tambahan |
+| `paid_at` | dateTime, nullable | Waktu pembayaran berhasil |
+| `failed_at` | dateTime, nullable | Waktu pembayaran gagal |
+
+### `transaction_items`
+Menyimpan item di dalam setiap transaksi. Menggunakan polymorphic relation sehingga bisa mereferensikan model apapun.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `transaction_id` | foreign key | Relasi ke `transactions` |
+| `itemable_type` | string | Nama class model item |
+| `itemable_id` | bigint | ID record model item |
+| `name` | string | Nama item |
+| `description` | string, nullable | Deskripsi item |
+| `price` | double | Harga satuan |
+| `quantity` | integer | Jumlah |
+| `total` | double | Subtotal item |
+
+### `discounts`
+Menyimpan kode diskon.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `name` | string | Nama diskon |
+| `code` | string | Kode diskon |
+| `is_active` | boolean | Status aktif |
+| `type` | string | `Percentage` atau `FixedAmount` |
+| `value` | double | Nilai diskon |
+
+---
+
+## Penggunaan
+
+Semua fungsionalitas utama bisa diakses melalui facade `TransactionModule`.
 
 ```php
-$:variable = new VendorName\Skeleton();
-echo $:variable->echoPhrase('Hello, VendorName!');
+use CodeWithDiki\TransactionModule\Facades\TransactionModule;
 ```
+
+### Membuat Transaksi
+
+Gunakan `TransactionData` dan `TransactionItemData` untuk membuat transaksi beserta item-itemnya secara sekaligus. Package akan otomatis memvalidasi bahwa total item sesuai dengan `total_amount`.
+
+```php
+use CodeWithDiki\TransactionModule\Data\TransactionData;
+use CodeWithDiki\TransactionModule\Data\TransactionItemData;
+use CodeWithDiki\TransactionModule\Enums\PaymentStatus;
+use CodeWithDiki\TransactionModule\Enums\TransactionStatus;
+use CodeWithDiki\TransactionModule\Facades\TransactionModule;
+use Illuminate\Support\Collection;
+
+// Siapkan data transaksi
+$transactionData = new TransactionData(
+    trx_id: 'TRX-' . now()->format('YmdHis'),
+    customer_id: 1,
+    total_amount: 150000,
+    tax_amount: 16500,
+    grand_total: 166500,
+    payment_status: PaymentStatus::PENDING,
+    status: TransactionStatus::ONHOLD,
+    notes: 'Pesanan via WhatsApp',
+);
+
+// Siapkan item-item transaksi (itemable bisa model apapun)
+$items = collect([
+    new TransactionItemData(
+        itemable: $product, // instance dari model Product, Service, dsb.
+        name: 'Kaos Polos Hitam',
+        quantity: 2,
+        price: 75000,
+        total: 150000,
+    ),
+]);
+
+// Buat transaksi
+$transaction = TransactionModule::createTransaction($transactionData, $items);
+```
+
+> **Catatan:** Jika `total` pada `TransactionItemData` tidak diisi, package akan menghitungnya otomatis dari `quantity * price`. Package juga memvalidasi bahwa jumlah semua item sama dengan `total_amount` di header transaksi.
+
+### Membuat Customer
+
+```php
+use CodeWithDiki\TransactionModule\Data\CustomerData;
+use CodeWithDiki\TransactionModule\Facades\TransactionModule;
+
+$customer = TransactionModule::createCustomer(new CustomerData(
+    name: 'Budi Santoso',
+    email: 'budi@example.com',
+    phone_number: '081234567890',
+    address: 'Jl. Merdeka No. 1, Jakarta',
+));
+```
+
+### Walk-In Customer
+
+Walk-in customer adalah pelanggan default untuk transaksi tanpa akun (misalnya transaksi kasir). Gunakan command artisan untuk membuatnya:
+
+```bash
+php artisan transaction-module:create-walk-in-customer
+```
+
+Kemudian ambil datanya kapanpun dibutuhkan:
+
+```php
+$walkIn = TransactionModule::getWalkInCustomer();
+```
+
+### Mengambil Data Transaksi
+
+Semua parameter bersifat opsional dan bisa dikombinasikan:
+
+```php
+use CodeWithDiki\TransactionModule\Enums\PaymentStatus;
+
+// Semua transaksi
+$transaksi = TransactionModule::getTransactions();
+
+// Filter berdasarkan status pembayaran
+$lunas = TransactionModule::getTransactions(status: PaymentStatus::PAID);
+
+// Filter berdasarkan rentang tanggal
+$bulanIni = TransactionModule::getTransactions(
+    from: '2026-05-01',
+    to: '2026-05-31',
+);
+
+// Kombinasi filter + limit
+$terbaru = TransactionModule::getTransactions(
+    from: '2026-05-01',
+    status: PaymentStatus::PAID,
+    limit: 10,
+);
+```
+
+**Menghitung jumlah transaksi:**
+
+```php
+$total = TransactionModule::getTransactionsCountsByDate(
+    status: PaymentStatus::PAID,
+    from: '2026-05-01',
+    to: '2026-05-31',
+);
+```
+
+**Menghitung total nominal transaksi:**
+
+```php
+$revenue = TransactionModule::getTransactionSumByDate(
+    status: PaymentStatus::PAID,
+    from: '2026-05-01',
+    to: '2026-05-31',
+);
+```
+
+### Menandai Status Pembayaran
+
+Setelah konfirmasi pembayaran diterima (misalnya dari callback payment gateway), gunakan method berikut langsung pada model `Transaction`:
+
+```php
+// Tandai sebagai lunas
+// Otomatis: payment_status = PAID, paid_at = now(), status = status_after_payment dari config
+$transaction->markAsPaid();
+
+// Tandai sebagai gagal
+// Otomatis: payment_status = FAILED, failed_at = now()
+$transaction->markAsFailed();
+```
+
+---
+
+## Enums
+
+### `PaymentStatus`
+
+| Nilai | Keterangan |
+|---|---|
+| `PENDING` | Menunggu pembayaran |
+| `PAID` | Pembayaran berhasil |
+| `FAILED` | Pembayaran gagal |
+
+### `TransactionStatus`
+
+| Nilai | Keterangan |
+|---|---|
+| `ONHOLD` | Menunggu konfirmasi |
+| `PROCESSING` | Sedang diproses |
+| `ONDELIVERY` | Dalam pengiriman |
+| `DELIVERED` | Sudah diterima |
+| `CANCELLED` | Dibatalkan |
+| `RETURNED` | Dikembalikan |
+| `REFUNDED` | Dana dikembalikan |
+| `FAILED` | Transaksi gagal |
+| `COMPLETED` | Selesai |
+
+### `DiscountType`
+
+| Nilai | Keterangan |
+|---|---|
+| `Percentage` | Diskon dalam persen (mis. 10%) |
+| `FixedAmount` | Diskon nominal tetap (mis. Rp 20.000) |
+
+---
+
+## Data Transfer Objects (DTO)
+
+Package menggunakan [Spatie Laravel Data](https://github.com/spatie/laravel-data) untuk DTOs yang type-safe.
+
+### `CustomerData`
+
+```php
+new CustomerData(
+    name: string,           // wajib
+    email: ?string,         // opsional
+    phone_number: ?string,  // opsional
+    address: ?string,       // opsional
+)
+```
+
+### `TransactionData`
+
+```php
+new TransactionData(
+    trx_id: string,                 // wajib, harus unik
+    customer_id: int,               // wajib
+    total_amount: float,            // wajib, total sebelum pajak
+    payment_status: PaymentStatus,  // wajib
+    status: TransactionStatus,      // wajib
+    tax_amount: ?float,             // opsional
+    grand_total: ?float,            // opsional
+    notes: ?string,                 // opsional
+)
+```
+
+### `TransactionItemData`
+
+```php
+new TransactionItemData(
+    itemable: Model,        // wajib, instance model apapun (produk, layanan, dll.)
+    name: string,           // wajib
+    quantity: int,          // wajib
+    price: float,           // wajib, harga satuan
+    description: ?string,   // opsional
+    total: ?float,          // opsional, jika null dihitung otomatis: quantity * price
+)
+```
+
+---
+
+## Meng-extend Model
+
+Jika kamu perlu menambahkan kolom atau relasi tambahan, extend model bawaan dan daftarkan di konfigurasi:
+
+```php
+// app/Models/Transaction.php
+namespace App\Models;
+
+use CodeWithDiki\TransactionModule\Models\Transaction as BaseTransaction;
+
+class Transaction extends BaseTransaction
+{
+    public function voucher()
+    {
+        return $this->belongsTo(Voucher::class);
+    }
+}
+```
+
+Kemudian daftarkan di `config/transaction-module.php`:
+
+```php
+"transaction_class" => \App\Models\Transaction::class,
+```
+
+Cara yang sama berlaku untuk model `Customer`, `TransactionItem`, dan `Discount`.
+
+---
+
+## Filament Admin UI
+
+Jika aplikasimu menggunakan [Filament](https://filamentphp.com), package ini menyertakan plugin Filament siap pakai. Daftarkan di `AdminPanelProvider`:
+
+```php
+use CodeWithDiki\TransactionModule\TransactionModuleFilament;
+
+$panel->plugins([
+    TransactionModuleFilament::make(),
+]);
+```
+
+Resource yang tersedia di navigation group **"Transaction Management"**:
+
+| Resource | Halaman |
+|---|---|
+| Customers | List, Create, Edit, View |
+| Discounts | List, Create, Edit, View |
+| Transactions | List, View |
+| Transaction Items | List, View |
+
+> **Catatan:** Transaksi tidak bisa dibuat atau diedit langsung dari UI. Buat transaksi hanya melalui `TransactionModule::createTransaction()` agar validasi business logic tetap berjalan.
+
+---
 
 ## Testing
 
@@ -71,23 +441,14 @@ echo $:variable->echoPhrase('Hello, VendorName!');
 composer test
 ```
 
+---
+
 ## Changelog
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+Lihat [CHANGELOG](CHANGELOG.md) untuk informasi perubahan di setiap versi.
 
-## Contributing
+---
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+## Lisensi
 
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [:author_name](https://github.com/:author_username)
-- [All Contributors](../../contributors)
-
-## License
-
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+The MIT License (MIT). Lihat [License File](LICENSE.md) untuk detail lebih lanjut.
