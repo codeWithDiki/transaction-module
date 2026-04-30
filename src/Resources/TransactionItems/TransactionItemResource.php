@@ -24,6 +24,11 @@ class TransactionItemResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'transaction.trx_id';
 
+    public static function getModel(): string
+    {
+        return config('transaction-module.transaction_item_class', self::$model);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return TransactionItemForm::configure($schema);

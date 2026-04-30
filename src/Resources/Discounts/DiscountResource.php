@@ -26,6 +26,11 @@ class DiscountResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getModel(): string
+    {
+        return config('transaction-module.discount_class', self::$model);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return DiscountForm::configure($schema);
