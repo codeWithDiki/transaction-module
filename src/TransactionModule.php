@@ -21,6 +21,12 @@ class TransactionModule {
     public function createTransaction(TransactionData $data, Collection $items) : Transaction
     {
         $transactionClass = config('transaction-module.transaction_class');
+        $tax = config('transaction-module.tax', 0);
+
+        if($tax > 0) {
+            $data->tax_amount = ($data->total_amount * $tax) / 100;
+            $data->grand_total = $data->total_amount + $data->tax_amount;
+        }
 
         if($data->total_amount != $items->sum(fn(TransactionItemData $item) => ($item->total ?? ($item->quantity * $item->price)))) {
             throw new \Exception("Total amount does not match with the sum of items total.");
@@ -47,7 +53,19 @@ class TransactionModule {
     public function createCustomer(CustomerData $customer) : Customer
     {
         $customerClass = config('transaction-module.customer_class');
-        return $customerClass::create($customer->toArray());
+        return $customerClass::firstOrCreate([
+            "email" => $customer->email,
+        ], [
+            "name" => $customer->name,
+            "phone_number" => $customer->phone_number,
+            "address" => $customer->address,
+        ]);
+    }
+
+    public function getCustomerByEmail(string $email) : ?Customer
+    {
+        $customerClass = config('transaction-module.customer_class');
+        return $customerClass::where('email', $email)->first();
     }
 
     public function getWalkInCustomer() : ?Customer
@@ -106,6 +124,23 @@ class TransactionModule {
                 $query->whereDate('created_at', '<=', $to);
             })
             ->sum("total_amount");
+    }
+
+    public function getTransactionByTrxId(string $trxId) : ?Transaction
+    {
+        return Transaction::with('items')->where('trx_id', $trxId)->first();
+    }
+
+    public function getTransactionById(int $id) : ?Transaction
+    {
+        return Transaction::with('items')->where('id', $id)->first();
+    }
+
+    public function getTransactionsByCustomerEmail(string $email) : \Illuminate\Database\Eloquent\Collection
+    {
+        return Transaction::with('items')->whereHas('customer', function($query) use ($email) {
+            $query->where('email', $email);
+        })->get();
     }
 
 }
