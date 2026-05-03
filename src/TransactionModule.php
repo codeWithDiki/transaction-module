@@ -175,7 +175,7 @@ class TransactionModule {
         ?\App\Models\User $user = null
     ) : Transaction
     {
-        $current_status = $transaction->payment_status;
+        $current_status = $transaction->status;
 
         if($status == PaymentStatus::PAID) {
             $transaction->markAsPaid();
@@ -186,12 +186,14 @@ class TransactionModule {
             $transaction->save();
         }
 
+        $transaction->refresh();
+
         // Create log
         $logClass = config('transaction-module.log_class');
         $log = $logClass::create([
             'transaction_id' => $transaction->id,
             'from_status' => $current_status,
-            'to_status' => $status,
+            'to_status' => $transaction->status,
             'note' => $note,
         ]);
 
