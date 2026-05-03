@@ -18,7 +18,11 @@ Package ini cocok digunakan pada aplikasi e-commerce, kasir, atau sistem pemesan
   - [Membuat Customer](#membuat-customer)
   - [Walk-In Customer](#walk-in-customer)
   - [Mengambil Data Transaksi](#mengambil-data-transaksi)
+  - [Mencari Transaksi](#mencari-transaksi)
   - [Menandai Status Pembayaran](#menandai-status-pembayaran)
+  - [Mengubah Status Transaksi](#mengubah-status-transaksi)
+  - [Mengubah Status Pembayaran via Facade](#mengubah-status-pembayaran-via-facade)
+- [Events](#events)
 - [Enums](#enums)
 - [Data Transfer Objects (DTO)](#data-transfer-objects-dto)
 - [Meng-extend Model](#meng-extend-model)
@@ -107,12 +111,23 @@ return [
     "transaction_class"       => \CodeWithDiki\TransactionModule\Models\Transaction::class,
     "transaction_item_class"  => \CodeWithDiki\TransactionModule\Models\TransactionItem::class,
     "discount_class"          => \CodeWithDiki\TransactionModule\Models\Discount::class,
+    "log_class"               => \CodeWithDiki\TransactionModule\Models\TransactionLog::class,
+
+    // Model User aplikasimu (digunakan untuk mencatat siapa yang mengubah status)
+    "user_class"              => \App\Models\User::class,
 
     // Persentase pajak (baca dari .env)
     "tax" => env("TAX_PERCENTAGE", 0),
 
     // Status transaksi setelah pembayaran berhasil
     "status_after_payment" => \CodeWithDiki\TransactionModule\Enums\TransactionStatus::PROCESSING,
+
+    // Listener untuk event TransactionStatusChangedEvent
+    "listeners" => [
+        \CodeWithDiki\TransactionModule\Events\TransactionStatusChangedEvent::class => [
+            // Tambahkan listener class kamu di sini
+        ],
+    ],
 ];
 ```
 
@@ -182,6 +197,18 @@ Menyimpan kode diskon.
 | `is_active` | boolean | Status aktif |
 | `type` | string | `Percentage` atau `FixedAmount` |
 | `value` | double | Nilai diskon |
+
+### `transaction_logs`
+Mencatat riwayat perubahan status transaksi (baik `status` maupun `payment_status`).
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `transaction_id` | foreign key | Relasi ke `transactions` |
+| `user_id` | foreign key, nullable | User yang melakukan perubahan |
+| `from_status` | string | Status sebelumnya |
+| `to_status` | string | Status sesudahnya |
+| `note` | longText, nullable | Catatan perubahan |
 
 ---
 
@@ -309,6 +336,25 @@ $revenue = TransactionModule::getTransactionSumByDate(
 );
 ```
 
+### Mencari Transaksi
+
+```php
+// Cari transaksi berdasarkan trx_id
+$transaction = TransactionModule::getTransactionByTrxId('TRX-20260503120000');
+
+// Cari transaksi berdasarkan id
+$transaction = TransactionModule::getTransactionById(1);
+
+// Ambil semua transaksi milik customer berdasarkan email
+$transactions = TransactionModule::getTransactionsByCustomerEmail('budi@example.com');
+```
+
+**Mencari Customer berdasarkan email:**
+
+```php
+$customer = TransactionModule::getCustomerByEmail('budi@example.com');
+```
+
 ### Menandai Status Pembayaran
 
 Setelah konfirmasi pembayaran diterima (misalnya dari callback payment gateway), gunakan method berikut langsung pada model `Transaction`:
@@ -321,6 +367,65 @@ $transaction->markAsPaid();
 // Tandai sebagai gagal
 // Otomatis: payment_status = FAILED, failed_at = now()
 $transaction->markAsFailed();
+```
+
+### Mengubah Status Transaksi
+
+Gunakan method ini untuk mengubah `status` (status pengiriman/proses) sebuah transaksi. Perubahan akan otomatis dicatat di `transaction_logs` dan men-dispatch `TransactionStatusChangedEvent`.
+
+```php
+use CodeWithDiki\TransactionModule\Enums\TransactionStatus;
+use CodeWithDiki\TransactionModule\Facades\TransactionModule;
+
+TransactionModule::setTransactionStatus(
+    transaction: $transaction,
+    status: TransactionStatus::PROCESSING,
+    note: 'Pesanan sedang dikemas',   // opsional
+);
+```
+
+### Mengubah Status Pembayaran via Facade
+
+Alternatif dari memanggil `markAsPaid()` / `markAsFailed()` langsung pada model. Method ini juga mencatat log dan men-dispatch event.
+
+```php
+use CodeWithDiki\TransactionModule\Enums\PaymentStatus;
+use CodeWithDiki\TransactionModule\Facades\TransactionModule;
+
+TransactionModule::setPaymentStatus(
+    transaction: $transaction,
+    status: PaymentStatus::PAID,
+    note: 'Konfirmasi dari payment gateway',  // opsional
+);
+```
+
+> **Catatan:** Saat `status = PaymentStatus::PAID`, method ini secara internal memanggil `$transaction->markAsPaid()`. Saat `status = PaymentStatus::FAILED`, memanggil `$transaction->markAsFailed()`.
+
+---
+
+## Events
+
+### `TransactionStatusChangedEvent`
+
+Event ini di-dispatch setiap kali status transaksi berubah melalui `setTransactionStatus()` atau `setPaymentStatus()`. Event ini mengimplementasikan `ShouldBroadcast`.
+
+| Property | Tipe | Keterangan |
+|---|---|---|
+| `$transaction` | `Transaction` | Instance transaksi yang berubah |
+| `$log` | `TransactionLog` | Record log perubahan status |
+
+**Broadcast channel:** `private-transaction-status-changed`
+
+**Broadcast event name:** `cwd.transaction-module.transaction-status-changed`
+
+Untuk mendaftarkan listener, tambahkan di `config/transaction-module.php`:
+
+```php
+"listeners" => [
+    \CodeWithDiki\TransactionModule\Events\TransactionStatusChangedEvent::class => [
+        \App\Listeners\HandleTransactionStatusChanged::class,
+    ],
+],
 ```
 
 ---
@@ -428,7 +533,9 @@ Kemudian daftarkan di `config/transaction-module.php`:
 "transaction_class" => \App\Models\Transaction::class,
 ```
 
-Cara yang sama berlaku untuk model `Customer`, `TransactionItem`, dan `Discount`.
+Cara yang sama berlaku untuk model `Customer`, `TransactionItem`, `Discount`, dan `TransactionLog`.
+
+> **Catatan:** Model `Transaction` memiliki relasi `logs()` ke `TransactionLog`, sehingga kamu bisa mengakses riwayat perubahan status dengan `$transaction->logs`.
 
 ---
 

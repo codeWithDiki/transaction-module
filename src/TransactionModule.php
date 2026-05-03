@@ -168,5 +168,38 @@ class TransactionModule {
         return $transaction;
     }
 
+    public function setPaymentStatus(
+        Transaction $transaction, 
+        PaymentStatus $status, 
+        ?string $note = null, 
+        ?\App\Models\User $user = null
+    ) : Transaction
+    {
+        $current_status = $transaction->payment_status;
+
+        if($status == PaymentStatus::PAID) {
+            $transaction->markAsPaid();
+        } else if($status == PaymentStatus::FAILED) {
+            $transaction->markAsFailed();
+        } else {
+            $transaction->payment_status = $status;
+            $transaction->save();
+        }
+
+        // Create log
+        $logClass = config('transaction-module.log_class');
+        $log = $logClass::create([
+            'transaction_id' => $transaction->id,
+            'from_status' => $current_status,
+            'to_status' => $status,
+            'note' => $note,
+        ]);
+
+        // Fire event
+        TransactionStatusChangedEvent::dispatch($transaction, $log);
+
+        return $transaction;
+    }
+
 
 }
