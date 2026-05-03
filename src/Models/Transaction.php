@@ -26,6 +26,11 @@ class Transaction extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function logs()
+    {
+        return $this->hasMany(config('transaction-module.log_class'));
+    }
+
     public function markAsPaid()
     {
         $this->payment_status = \CodeWithDiki\TransactionModule\Enums\PaymentStatus::PAID;

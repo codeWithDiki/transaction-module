@@ -3,6 +3,7 @@
 namespace CodeWithDiki\TransactionModule;
 
 use CodeWithDiki\TransactionModule\Commands\CreateWalkInCustomerCommand;
+use Illuminate\Support\Facades\Event;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -21,4 +22,24 @@ class TransactionModuleServiceProvider extends PackageServiceProvider
             ->hasCommand(CreateWalkInCustomerCommand::class)
             ->hasMigration('create_transaction_module_table');
     }
+
+    public function bootingPackage()
+    {
+        $listeners = config('transaction-module.listeners', [
+            \CodeWithDiki\TransactionModule\Events\TransactionStatusChangedEvent::class => [
+                
+            ],
+        ]);
+
+        foreach($listeners as $event => $eventListeners)
+        {
+            foreach($eventListeners as $listener)
+            {
+                Event::listen($event, $listener);
+            }
+        }
+
+
+    }
+
 }

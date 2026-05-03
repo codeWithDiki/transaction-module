@@ -9,6 +9,7 @@ use CodeWithDiki\TransactionModule\Models\Customer;
 use CodeWithDiki\TransactionModule\Models\Transaction;
 use Illuminate\Support\Collection;
 use CodeWithDiki\TransactionModule\Enums\PaymentStatus;
+use CodeWithDiki\TransactionModule\Events\TransactionStatusChangedEvent;
 
 class TransactionModule {
 
@@ -140,5 +141,32 @@ class TransactionModule {
             $query->where('email', $email);
         })->get();
     }
+
+    public function setTransactionStatus(
+        Transaction $transaction, 
+        \CodeWithDiki\TransactionModule\Enums\TransactionStatus $status, 
+        ?string $note = null, 
+        ?\App\Models\User $user = null) : Transaction
+    {
+        $current_status = $transaction->status;
+
+        // Create log
+        $logClass = config('transaction-module.log_class');
+        $log = $logClass::create([
+            'transaction_id' => $transaction->id,
+            'from_status' => $current_status,
+            'to_status' => $status,
+            'note' => $note,
+        ]);
+
+        $transaction->status = $status;
+        $transaction->save();
+
+        // Fire event
+        TransactionStatusChangedEvent::dispatch($transaction, $log);
+
+        return $transaction;
+    }
+
 
 }
