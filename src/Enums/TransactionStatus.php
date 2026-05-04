@@ -13,4 +13,20 @@ enum TransactionStatus: string
     case REFUNDED = 'Refunded';
     case FAILED = 'Failed';
     case COMPLETED = 'Completed';
+
+    public function color() : string
+    {
+        return match($this) {
+            self::ONHOLD => 'warning',
+            self::PROCESSING => 'success',
+            self::ONDELIVERY => 'success',
+            self::DELIVERED => 'success',
+            self::CANCELLED => 'danger',
+            self::RETURNED => 'danger',
+            self::REFUNDED => 'success',
+            self::FAILED => 'danger',
+            self::COMPLETED => 'success',
+        };
+    }
+
 }
