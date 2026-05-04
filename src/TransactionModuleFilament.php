@@ -19,7 +19,8 @@ class TransactionModuleFilament implements Plugin
                 Resources\Transactions\TransactionResource::class,
                 Resources\Discounts\DiscountResource::class,
                 Resources\TransactionItems\TransactionItemResource::class,
-                Resources\Customers\CustomerResource::class
+                Resources\Customers\CustomerResource::class,
+                Resources\TransactionLogs\TransactionLogResource::class,
             ])
             ->pages([
 
